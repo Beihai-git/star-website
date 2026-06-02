@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="description" content="Snake Arena — Classic snake game with modern twist. Multiple themes, game modes, and online leaderboard. Play free in browser! 贪吃蛇竞技场 — 经典贪吃蛇全新体验。多种皮肤和游戏模式！">
+    <meta name="keywords" content="snake game,贪吃蛇,online game,browser game,html5 game,canvas game">
+    <meta name="author" content="Snake Arena">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="Snake Arena — Classic Snake Game">
+    <meta property="og:description" content="Classic snake game reimagined. Multiple themes, game modes, compete for high scores!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://snake-arena.vercel.app/og-image.png">
+    <meta property="og:url" content="https://snake-arena.vercel.app">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+
+    <title>🐍 Snake Arena — Classic Snake Game | 贪吃蛇竞技场</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ═══════════ HEADER ═══════════ -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="header-logo" data-i18n="gameTitle">🐍 贪吃蛇竞技场</span>
+                <span class="header-tagline" data-i18n="tagline">经典贪吃蛇，全新体验。</span>
+                <span class="premium-badge" id="premiumBadge">⭐ PREMIUM</span>
+            </div>
+            <div class="header-right">
+                <button class="btn-icon" id="btnInstall" title="Install App" style="display:none;">📲</button>
+                <button class="btn-icon" id="btnSettings" title="Settings">⚙️</button>
+            </div>
+        </header>
+
+        <!-- ═══════════ MAIN CONTENT ═══════════ -->
+        <main class="main-content">
+            <!-- Left Sidebar — Game Modes -->
+            <aside class="sidebar">
+                <div class="panel">
+                    <div class="panel-title" data-i18n="settingsTitle">游戏模式</div>
+                    <div class="mode-list">
+                        <button class="mode-btn selected" id="modeClassic">
+                            <span class="mode-icon">🎮</span>
+                            <span data-i18n="modeClassic">经典模式</span>
+                            <span class="mode-lock"></span>
+                        </button>
+                        <button class="mode-btn" id="modeTimeAttack">
+                            <span class="mode-icon">⏱️</span>
+                            <span data-i18n="modeTimeAttack">限时挑战</span>
+                            <span class="mode-lock">🔒</span>
+                        </button>
+                        <button class="mode-btn" id="modeMaze">
+                            <span class="mode-icon">🏗️</span>
+                            <span data-i18n="modeMaze">迷宫模式</span>
+                            <span class="mode-lock">🔒</span>
+                        </button>
+                    </div>
+                    <p style="font-size:0.75em;color:var(--text-muted);margin-top:8px;text-align:center;" id="modeDescClassic">
+                        吃食物变长，别撞墙也别撞到自己。
+                    </p>
+                    <p style="font-size:0.75em;color:var(--text-muted);margin-top:4px;text-align:center;display:none;" id="modeDescTimeAttack">
+                        60秒内尽可能多地得分！
+                    </p>
+                    <p style="font-size:0.75em;color:var(--text-muted);margin-top:4px;text-align:center;display:none;" id="modeDescMaze">
+                        穿越随机障碍物，困难模式！
+                    </p>
+                </div>
+
+                <!-- Themes Panel -->
+                <div class="panel">
+                    <div class="panel-title" data-i18n="themes">皮肤</div>
+                    <div class="theme-grid" id="themeCards">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center — Game Area -->
+            <section class="game-area">
+                <!-- Score Bar -->
+                <div class="score-bar">
+                    <div class="score-item">
+                        <span class="score-label" data-i18n="score">分数</span>
+                        <span class="score-value" id="score">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label" data-i18n="highScore">最高分</span>
+                        <span class="score-value" id="highScore">0</span>
+                    </div>
+                    <div class="score-item combo-container" id="comboContainer">
+                        <span class="score-label" data-i18n="combo">连击</span>
+                        <span class="score-value" id="combo">-</span>
+                    </div>
+                    <div class="score-item timer-container" id="timerContainer" style="display:none;">
+                        <span class="score-label">⏱</span>
+                        <span class="score-value" id="timer">60</span>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="game-canvas-wrapper">
+                    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+                    <!-- Game Over Overlay -->
+                    <div class="game-over-overlay" id="gameOverOverlay">
+                        <h2 id="gameOverTitle" data-i18n="gameOver">游戏结束!</h2>
+                        <span class="final-score">
+                            <span data-i18n="finalScore">最终分数</span>: <strong id="finalScore">0</strong>
+                        </span>
+                        <span class="new-highscore" id="newHighScore" data-i18n="newHighScore">🏆 新最高纪录!</span>
+                        <button class="btn btn-primary" id="btnPlayAgain" data-i18n="playAgain">再来一局</button>
+                    </div>
+                </div>
+
+                <!-- Control Bar -->
+                <div class="control-bar">
+                    <button class="btn btn-primary" id="btnPlay" data-i18n="play">开始游戏</button>
+                    <button class="btn btn-secondary" id="btnPause" style="display:none;" data-i18n="pause">暂停</button>
+                    <button class="btn btn-secondary" id="btnRestart" data-i18n="restart">重新开始</button>
+                </div>
+
+                <!-- Mobile D-Pad -->
+                <div class="dpad" id="dpad">
+                    <button class="dpad-btn dpad-up" id="dpadUp">▲</button>
+                    <button class="dpad-btn dpad-left" id="dpadLeft">◀</button>
+                    <button class="dpad-btn dpad-right" id="dpadRight">▶</button>
+                    <button class="dpad-btn dpad-down" id="dpadDown">▼</button>
+                </div>
+
+                <!-- Instructions -->
+                <p style="color:var(--text-muted);font-size:0.8em;text-align:center;margin-top:8px;" data-i18n="instructions">
+                    使用方向键 ↑↓←→ 或 WASD 控制移动
+                </p>
+            </section>
+
+            <!-- Right Sidebar — Premium + Ads -->
+            <aside class="sidebar sidebar-right">
+                <!-- Premium Card -->
+                <div class="panel" style="text-align:center;">
+                    <div class="panel-title" data-i18n="premiumTitle">升级高级版</div>
+                    <ul class="premium-features" id="premiumFeaturesSidebar" style="text-align:left;">
+                        <li data-i18n="premiumFeature1">🚫 永久去除广告</li>
+                        <li data-i18n="premiumFeature2">🎨 5款专属高级皮肤</li>
+                        <li data-i18n="premiumFeature3">🕹️ 限时挑战 & 迷宫模式</li>
+                        <li data-i18n="premiumFeature4">✨ 金色拖尾特效</li>
+                        <li data-i18n="premiumFeature5">💾 永久授权，无需订阅</li>
+                    </ul>
+                    <div class="premium-price" data-i18n="premiumPrice">$2.99</div>
+                    <button class="btn btn-premium" id="btnUpgrade" data-i18n="premiumBuy">立即升级</button>
+                    <p style="font-size:0.75em;color:var(--text-muted);margin-top:8px;">
+                        <a href="#" id="btnOpenLicense" data-i18n="premiumHaveKey">已有许可证密钥？</a>
+                    </p>
+                </div>
+
+                <!-- Ad Banner (hidden for premium) -->
+                <div class="ad-banner" id="adBanner">
+                    <span data-i18n="adPlaceholder">📢 广告位 — 升级高级版即可去广告</span>
+                </div>
+
+                <!-- Premium Link -->
+                <div style="text-align:center;">
+                    <a href="#" id="btnOpenPremium" style="color:var(--text-muted);font-size:0.85em;" data-i18n="premiumEnterKey">输入许可证密钥</a>
+                </div>
+            </aside>
+        </main>
+
+        <!-- ═══════════ FOOTER ═══════════ -->
+        <footer class="app-footer">
+            <p><span data-i18n="footerText">© 2026 Snake Arena. 保留所有权利。</span> · <span data-i18n="footerPowered">由 Lemon Squeezy 提供支付支持</span></p>
+        </footer>
+
+        <!-- ═══════════ MODALS ═══════════ -->
+
+        <!-- Settings Modal -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal">
+                <button class="modal-close">✕</button>
+                <h2 data-i18n="settingsTitle">游戏设置</h2>
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="speed">速度</span>
+                    <div class="setting-control">
+                        <select id="speedSelect">
+                            <option value="200" data-i18n="speedSlow">慢</option>
+                            <option value="150" selected data-i18n="speedNormal">中</option>
+                            <option value="90" data-i18n="speedFast">快</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="gridSize">网格大小</span>
+                    <div class="setting-control">
+                        <select id="gridSelect">
+                            <option value="20" selected>20×20</option>
+                            <option value="25">25×25</option>
+                            <option value="30">30×30</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="sound">音效</span>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="dpad">屏幕方向键</span>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dpadToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label" data-i18n="language">语言 / Language</span>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="langToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div class="modal-overlay" id="premiumModal">
+            <div class="modal">
+                <button class="modal-close">✕</button>
+                <h2 data-i18n="premiumTitle">升级高级版</h2>
+                <p data-i18n="premiumDesc">一次性购买，解锁全部功能：</p>
+                <ul class="premium-features" id="premiumFeaturesModal">
+                    <li data-i18n="premiumFeature1">🚫 永久去除广告</li>
+                    <li data-i18n="premiumFeature2">🎨 5款专属高级皮肤</li>
+                    <li data-i18n="premiumFeature3">🕹️ 限时挑战 & 迷宫模式</li>
+                    <li data-i18n="premiumFeature4">✨ 金色拖尾特效</li>
+                    <li data-i18n="premiumFeature5">💾 永久授权，无需订阅</li>
+                </ul>
+                <div class="premium-price" data-i18n="premiumPrice">$2.99</div>
+                <div style="text-align:center;margin-bottom:16px;">
+                    <button class="btn btn-premium" id="btnUpgradeModal" data-i18n="premiumBuy">立即升级</button>
+                </div>
+                <div class="modal-footer">
+                    <p data-i18n="premiumHaveKey">已有许可证密钥？</p>
+                    <button class="btn btn-secondary btn-small" id="btnOpenLicenseModal" data-i18n="premiumEnterKey">输入许可证密钥</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- License Modal -->
+        <div class="modal-overlay" id="licenseModal">
+            <div class="modal">
+                <button class="modal-close">✕</button>
+                <h2 data-i18n="licenseTitle">输入许可证密钥</h2>
+                <p id="licenseHint" data-i18n="licenseHint">购买后许可证密钥已发送到您的邮箱。</p>
+                <div class="license-input-group">
+                    <input type="text" id="licenseInput" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="24"
+                           data-i18n="licensePlaceholder" autocomplete="off">
+                    <button class="btn btn-primary" id="btnActivate" data-i18n="premiumActivate">激活</button>
+                </div>
+                <div class="license-msg" id="licenseMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ SCRIPTS ═══════════ -->
+    <!-- Lemon Squeezy SDK -->
+    <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+
+    <!-- Game Scripts (order matters) -->
+    <script src="js/i18n.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/license.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+
+    <!-- Bootstrap -->
+    <script>
+    (function() {
+        'use strict';
+
+        // Wait for DOM ready
+        function init() {
+            // Load saved settings
+            const savedSpeed = parseInt(localStorage.getItem('snakeSpeed')) || 150;
+            const savedGridSize = parseInt(localStorage.getItem('snakeGridSize')) || 20;
+            const savedTheme = localStorage.getItem('snakeTheme') || 'classic-green';
+            const savedLang = localStorage.getItem('snakeLang') || 'zh';
+            const soundEnabled = localStorage.getItem('snakeSound') !== 'off';
+
+            // Apply language
+            switchLanguage(savedLang);
+            document.getElementById('langToggle').checked = (savedLang === 'en');
+
+            // Create game instance
+            const canvas = document.getElementById('gameCanvas');
+            const game = new SnakeGame(canvas, {
+                speed: savedSpeed,
+                gridSize: savedGridSize,
+                theme: savedTheme,
+            });
+
+            // Set initial high score display
+            document.getElementById('highScore').textContent = game.getHighScore();
+
+            // Create UI manager
+            const ui = new UIManager(game);
+
+            // Apply saved settings to UI controls
+            document.getElementById('speedSelect').value = savedSpeed;
+            document.getElementById('gridSelect').value = savedGridSize;
+            document.getElementById('soundToggle').checked = soundEnabled;
+
+            // Apply theme
+            ui.currentThemeId = savedTheme;
+            game.setTheme(savedTheme);
+
+            // Language toggle handler
+            document.getElementById('langToggle').addEventListener('change', function() {
+                const lang = this.checked ? 'en' : 'zh';
+                ui.changeLanguage(lang);
+            });
+
+            // Premium modal upgrade button
+            document.getElementById('btnUpgradeModal').addEventListener('click', function() {
+                payment.openCheckout();
+            });
+
+            // Prevent zooming on double-tap for game controls
+            document.querySelectorAll('.dpad-btn, .mode-btn, .theme-card, button').forEach(el => {
+                el.addEventListener('touchstart', function(e) {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            });
+
+            // Log startup
+            console.log('🐍 Snake Arena ready!');
+            console.log('   Mode:', game.mode);
+            console.log('   Theme:', game.currentThemeId);
+            console.log('   Premium:', licenseManager.isPremium());
+            console.log('   Language:', currentLang);
+            console.log('   Sound:', audio.isEnabled());
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "Snake Arena - Classic Snake Game",
+  "short_name": "Snake Arena",
+  "description": "Classic snake game with modern twist. Multiple themes, game modes, and premium features.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230a0a1a' rx='32'/><text y='130' font-size='120' text-anchor='middle' x='96'>🐍</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230a0a1a' rx='64'/><text y='340' font-size='320' text-anchor='middle' x='256'>🐍</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
