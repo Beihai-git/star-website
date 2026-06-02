@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌙 治愈小能手</title>
+<style>
+  :root {
+    --bg: #fef9f0;
+    --card-bg: rgba(255,255,255,0.85);
+    --text: #4a3728;
+    --text-light: #7a6a5c;
+    --accent: #e8987a;
+    --accent2: #c4a0d4;
+    --shadow: 0 4px 24px rgba(120,80,60,0.10);
+    --radius: 20px;
+    --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  body.night {
+    --bg: #1a1520;
+    --card-bg: rgba(30,25,38,0.90);
+    --text: #e8dcd0;
+    --text-light: #b8a898;
+    --shadow: 0 4px 24px rgba(0,0,0,0.35);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: "PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background var(--transition), color var(--transition);
+    position: relative;
+  }
+
+  /* ── 粒子背景 ── */
+  #particles {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    pointer-events: none; z-index:0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) scale(0); opacity:0; }
+    10%  { opacity:0.8; }
+    90%  { opacity:0.2; }
+    100% { transform: translateY(-110vh) scale(1.4); opacity:0; }
+  }
+
+  /* ── 主容器 ── */
+  .container {
+    position: relative; z-index:1;
+    max-width: 680px; margin:0 auto; padding: 20px 20px 60px;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center; padding: 36px 20px 10px;
+    position: relative; z-index:1;
+  }
+  .header .icon { font-size: 56px; animation: bounce 2s ease-in-out infinite; display:block; }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .header h1 {
+    font-size: 32px; font-weight: 700;
+    background: linear-gradient(135deg, #e8987a, #c4a0d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 8px 0 4px;
+  }
+  .greeting {
+    font-size: 18px; color: var(--text-light);
+    font-weight: 400; letter-spacing: 1px;
+  }
+
+  /* ── 卡片 ── */
+  .card {
+    background: var(--card-bg); border-radius: var(--radius);
+    padding: 28px 24px; margin: 18px 0;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.3s, box-shadow 0.3s, background var(--transition);
+    position: relative; z-index:1;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(120,80,60,0.14); }
+  body.night .card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
+  .card-title {
+    font-size: 20px; font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-title .emoji { font-size: 26px; }
+
+  /* ── 切换标签 ── */
+  .tab-nav {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .tab-nav button {
+    flex:1; min-width: 70px; padding: 10px 8px;
+    border: 2px solid #e0d5c8; border-radius: 30px;
+    background: transparent; color: var(--text-light);
+    font-size: 14px; cursor: pointer; transition: all 0.3s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  body.night .tab-nav button { border-color: #3a3040; }
+  .tab-nav button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; animation: fadeSlideIn 0.5s ease; }
+  @keyframes fadeSlideIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── 语录 ── */
+  .quote-box {
+    text-align: center; padding: 10px 0;
+  }
+  .quote-text {
+    font-size: 20px; line-height: 1.8; font-weight: 500;
+    min-height: 80px; display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.4s;
+  }
+  .quote-author { color: var(--text-light); font-size: 14px; margin-top: 8px; }
+  .quote-btn {
+    margin-top: 14px; padding: 10px 28px;
+    border: none; border-radius: 30px;
+    background: linear-gradient(135deg, #e8987a, #d4786a);
+    color: #fff; font-size: 15px; cursor: pointer;
+    font-family: inherit; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .quote-btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(232,152,122,0.4); }
+
+  /* ── 树洞 ── */
+  .treehole-textarea {
+    width:100%; height:100px; border:2px solid #e8ddd0;
+    border-radius: 16px; padding: 14px; font-size: 15px;
+    font-family: inherit; resize: none; outline: none;
+    background: rgba(255,255,255,0.5); color: var(--text);
+    transition: border-color 0.3s;
+  }
+  body.night .treehole-textarea { background: rgba(255,255,255,0.06); border-color:#3a3040; }
+  .treehole-textarea:focus { border-color: var(--accent2); }
+  .treehole-actions { display:flex; gap:10px; margin-top:12px; align-items:center; }
+  .btn {
+    padding: 10px 22px; border:none; border-radius: 30px;
+    font-size: 14px; cursor:pointer; font-family: inherit;
+    transition: all 0.3s;
+  }
+  .btn-primary { background: var(--accent2); color:#fff; }
+  .btn-primary:hover { filter: brightness(1.1); transform: scale(1.03); }
+  .btn-ghost {
+    background: transparent; color: var(--text-light);
+    border: 1.5px solid #d5c8b8;
+  }
+  body.night .btn-ghost { border-color:#3a3040; }
+  .btn-ghost:hover { background: rgba(0,0,0,0.04); }
+
+  .flying-text {
+    position: fixed; z-index:999; pointer-events:none;
+    font-size: 16px; color: var(--accent2); font-weight: 500;
+    animation: flyAway 3s ease-in forwards;
+    white-space: nowrap;
+  }
+  @keyframes flyAway {
+    0%   { opacity:1; transform: translate(0,0) rotate(0deg) scale(1); }
+    30%  { opacity:1; transform: translate(30px,-20px) rotate(5deg) scale(1.1); }
+    100% { opacity:0; transform: translate(120px,-260px) rotate(-25deg) scale(0.3); }
+  }
+
+  /* ── 呼吸 ── */
+  .breath-container {
+    display:flex; flex-direction:column; align-items:center; gap:20px;
+  }
+  .breath-circle {
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #f0d8d0, #e8987a);
+    box-shadow: 0 0 60px rgba(232,152,122,0.35);
+    transition: transform 0.1s linear;
+    display: flex; align-items: center; justify-content: center;
+  }
+  body.night .breath-circle {
+    background: radial-gradient(circle at 35% 35%, #3a2a40, #5a3a60);
+    box-shadow: 0 0 60px rgba(180,120,200,0.3);
+  }
+  .breath-circle .phase-label {
+    font-size: 18px; font-weight: 700; color:#fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    user-select: none;
+  }
+  .breath-controls {
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;
+  }
+  .breath-controls select {
+    padding:8px 14px; border-radius:20px; border:1.5px solid #d5c8b8;
+    font-family:inherit; font-size:14px; background:transparent; color:var(--text);
+  }
+  body.night .breath-controls select { border-color:#3a3040; }
+  .round-counter { font-size:15px; color:var(--text-light); }
+
+  /* ── 日记 ── */
+  .journal-input {
+    width:100%; padding:12px 14px; border:2px solid #e8ddd0;
+    border-radius:14px; font-size:14px; font-family:inherit; outline:none;
+    background: rgba(255,255,255,0.5); color:var(--text);
+    margin-bottom:10px;
+  }
+  body.night .journal-input { background: rgba(255,255,255,0.06); border-color:#3a3040; }
+  .journal-entry {
+    background: rgba(255,255,255,0.5); border-radius:14px;
+    padding:14px 16px; margin:10px 0;
+    border-left: 4px solid var(--accent);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  body.night .journal-entry { background: rgba(255,255,255,0.04); }
+  .journal-entry .time { font-size:12px; color:var(--text-light); }
+  .journal-entry .delete-btn {
+    background:none; border:none; font-size:18px; cursor:pointer;
+    opacity:0.5; transition:opacity 0.2s;
+  }
+  .journal-entry .delete-btn:hover { opacity:1; }
+
+  /* ── 捏泡泡 ── */
+  .bubble-grid {
+    display:grid; grid-template-columns:repeat(6,1fr); gap:10px;
+    max-width:360px; margin:0 auto;
+  }
+  .bubble {
+    aspect-ratio:1; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7), rgba(200,180,200,0.5));
+    border: 2px solid rgba(180,160,180,0.3);
+    cursor:pointer; transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .bubble:hover { transform:scale(1.1); box-shadow: 0 0 14px rgba(200,160,200,0.4); }
+  .bubble.popped {
+    animation: popBubble 0.35s ease-out forwards;
+    pointer-events:none;
+  }
+  @keyframes popBubble {
+    0%   { transform:scale(1.1); opacity:1; }
+    50%  { transform:scale(1.5); opacity:0.3; }
+    100% { transform:scale(0); opacity:0; }
+  }
+  .bubble-stats { text-align:center; margin-top:14px; font-size:15px; color:var(--text-light); }
+
+  /* ── 顶部工具栏 ── */
+  .toolbar {
+    display:flex; justify-content:flex-end; gap:6px;
+    padding: 12px 20px; position:relative; z-index:2;
+  }
+  .toolbar button {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid #d5c8b8; background: var(--card-bg);
+    font-size: 18px; cursor:pointer; transition: all 0.3s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  body.night .toolbar button { border-color:#3a3040; }
+  .toolbar button:hover { transform: scale(1.1); }
+  .toolbar button.active { background: var(--accent); border-color:var(--accent); color:#fff; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align:center; padding:30px 20px;
+    color: var(--text-light); font-size:13px; opacity:0.7;
+    position:relative; z-index:1;
+  }
+
+  /* ── 响应式 ── */
+  @media (max-width:480px) {
+    .container { padding:12px 12px 40px; }
+    .card { padding:20px 16px; margin:12px 0; }
+    .header h1 { font-size:26px; }
+    .bubble-grid { grid-template-columns:repeat(5,1fr); gap:8px; }
+    .breath-circle { width:140px; height:140px; }
+    .tab-nav button { font-size:12px; padding:8px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 粒子背景 -->
+<div id="particles"></div>
+
+<!-- 顶部工具栏 -->
+<div class="toolbar">
+  <button id="soundToggle" title="背景音效" onclick="toggleSound()">🔇</button>
+  <button id="nightToggle" title="切换日夜模式" onclick="toggleNight()">🌓</button>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <span class="icon" id="headerEmoji">🌇</span>
+  <h1>下班治愈所</h1>
+  <p class="greeting" id="greeting">辛苦了，这里是你温暖的角落</p>
+</header>
+
+<!-- 主容器 -->
+<div class="container">
+
+  <!-- ══════ 1. 治愈语录 ══════ -->
+  <div class="card">
+    <div class="card-title"><span class="emoji">💬</span> 治愈语录</div>
+    <div class="quote-box">
+      <p class="quote-text" id="quoteText">加载中...</p>
+      <p class="quote-author" id="quoteAuthor"></p>
+      <button class="quote-btn" onclick="nextQuote()">🔄 换一句</button>
+    </div>
+  </div>
+
+  <!-- ══════ 2. 功能标签页 (树洞 / 呼吸 / 日记 / 捏泡泡) ══════ -->
+  <div class="card">
+    <div class="tab-nav">
+      <button class="active" onclick="switchTab('treehole')">🌳 树洞</button>
+      <button onclick="switchTab('breath')">🫁 呼吸</button>
+      <button onclick="switchTab('journal')">📝 小确幸</button>
+      <button onclick="switchTab('bubble')">🫧 捏泡泡</button>
+    </div>
+
+    <!-- 树洞倾诉 -->
+    <div class="tab-panel active" id="panel-treehole">
+      <textarea class="treehole-textarea" id="treeholeInput"
+        placeholder="在这里写下你的烦恼、不开心、委屈...&#10;写出来，然后让它随风飘走吧 🎈"></textarea>
+      <div class="treehole-actions">
+        <button class="btn btn-primary" onclick="releaseWorry()">🕊️ 放飞烦恼</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('treeholeInput').value=''">清空</button>
+      </div>
+      <p id="releaseCount" style="margin-top:10px;font-size:13px;color:var(--text-light)"></p>
+    </div>
+
+    <!-- 呼吸练习 -->
+    <div class="tab-panel" id="panel-breath">
+      <div class="breath-container">
+        <div class="breath-circle" id="breathCircle">
+          <span class="phase-label" id="breathLabel">准备</span>
+        </div>
+        <div class="breath-controls">
+          <select id="breathRounds">
+            <option value="3">3 轮</option>
+            <option value="5" selected>5 轮</option>
+            <option value="8">8 轮</option>
+          </select>
+          <button class="btn btn-primary" id="breathStartBtn" onclick="startBreath()">▶ 开始呼吸</button>
+          <button class="btn btn-ghost" id="breathStopBtn" onclick="stopBreath()" style="display:none">⏹ 停止</button>
+        </div>
+        <p class="round-counter" id="breathRoundCounter"></p>
+        <p style="font-size:13px;color:var(--text-light);text-align:center">
+          💡 4-7-8 呼吸法：吸气4秒 · 屏息7秒 · 呼气8秒
+        </p>
+      </div>
+    </div>
+
+    <!-- 今日小确幸 -->
+    <div class="tab-panel" id="panel-journal">
+      <input class="journal-input" id="journalInput" placeholder="今天有什么让你开心的小事？✨" maxlength="200">
+      <button class="btn btn-primary" onclick="addJournal()" style="width:100%;margin-bottom:14px;">💾 记录这份美好</button>
+      <div id="journalList"></div>
+    </div>
+
+    <!-- 捏泡泡 -->
+    <div class="tab-panel" id="panel-bubble">
+      <div class="bubble-grid" id="bubbleGrid"></div>
+      <div class="bubble-stats">
+        已捏爆：<strong id="popCount">0</strong> 个泡泡 🫧
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <button class="btn btn-ghost" onclick="resetBubbles()">🔄 再来一板</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  🌙 你辛苦了 · 今天也好好爱自己吧
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  全局变量
+// ═══════════════════════════════════════
+let soundEnabled = false;
+let isNight = false;
+let currentQuoteIdx = -1;
+let breathTimer = null;
+let breathRunning = false;
+let totalPopped = 0;
+let sessionReleaseCount = 0;
+
+// ═══════════════════════════════════════
+//  治愈语录库 (30+条)
+// ═══════════════════════════════════════
+const quotes = [
+  { text:'今天你已经做得很好了，剩下的就留给明天吧。', author:'' },
+  { text:'你不需要每天都发光，偶尔黯淡也是完整的一部分。', author:'' },
+  { text:'累了就停下来，你不是机器，你有权利休息。', author:'' },
+  { text:'工作的意义是为了更好地生活，而不是取代生活。', author:'' },
+  { text:'每一个认真生活的普通人，都是自己世界里的英雄。', author:'' },
+  { text:'不必事事完美，完成比完美更重要。', author:'' },
+  { text:'你的价值不由KPI定义，你的存在本身就有意义。', author:'' },
+  { text:'今天的不开心就到此为止，明天依旧光芒万丈。', author:'' },
+  { text:'允许自己偶尔摆烂，那是身体在告诉你需要充电了。', author:'' },
+  { text:'你已经比昨天的自己更好了，哪怕只是一点点。', author:'' },
+  { text:'生活不是马拉松，而是一系列短跑——跑完一段就歇歇。', author:'' },
+  { text:'没有人是孤岛，你的疲惫有人懂。', author:'' },
+  { text:'今天你扛住了生活的重量，你已经很了不起了。', author:'' },
+  { text:'不要因为走得太远，而忘了为什么出发。', author:'纪伯伦' },
+  { text:'世界是自己的，与他人毫无关系。', author:'杨绛' },
+  { text:'人生最曼妙的风景，是内心的淡定与从容。', author:'杨绛' },
+  { text:'万物皆有裂痕，那是光照进来的地方。', author:'莱昂纳德·科恩' },
+  { text:'人间烟火气，最抚凡人心。', author:'' },
+  { text:'慢慢来，会更快。停下来，会更好。', author:'' },
+  { text:'你值得被温柔对待，包括被自己温柔对待。', author:'' },
+  { text:'下班后的时间，只属于你自己。好好享受吧。', author:'' },
+  { text:'没有什么是一顿好吃的解决不了的，如果有，那就两顿。', author:'' },
+  { text:'你是来体验人生的，不是来演绎完美的。', author:'' },
+  { text:'把期望降低，把依赖变少，你会过得更好。', author:'' },
+  { text:'与自己和解，是成年人最高级的智慧。', author:'' },
+  { text:'生活明朗，万物可爱。人间值得，未来可期。', author:'' },
+  { text:'你的努力，时间看得见。但现在，请先休息。', author:'' },
+  { text:'所有的不快乐，都会随着今天的结束而过去。', author:'' },
+  { text:'在疲惫的生活里，记得给自己留一点温柔的余地。', author:'' },
+  { text:'今天辛苦了，来抱抱自己吧 🤗', author:'' },
+  { text:'生活就像一面镜子，你对它笑，它就对你笑。', author:'' },
+  { text:'不是因为有了希望才坚持，而是坚持了才有希望。', author:'' },
+  { text:'最好的状态是：未来可期，当下不负。', author:'' },
+  { text:'你要相信，所有的事与愿违，都是另有安排。', author:'' },
+  { text:'在人生中，偶尔输给生活也没关系。', author:'' },
+];
+
+// ═══════════════════════════════════════
+//  初始化
+// ═══════════════════════════════════════
+function init() {
+  updateGreeting();
+  nextQuote();
+  initParticles();
+  initBubbles();
+  renderJournalList();
+  updateSoundButton();
+  checkNightMode();
+
+  // 从localStorage恢复
+  totalPopped = parseInt(localStorage.getItem('healing_totalPopped') || '0');
+  sessionReleaseCount = parseInt(localStorage.getItem('healing_releaseCount') || '0');
+  updatePopCount();
+  updateReleaseCount();
+
+  // 每5分钟刷新时段问候
+  setInterval(updateGreeting, 300000);
+}
+window.addEventListener('DOMContentLoaded', init);
+
+// ═══════════════════════════════════════
+//  时段问候
+// ═══════════════════════════════════════
+function updateGreeting() {
+  const h = new Date().getHours();
+  let emoji, greeting, subtitle;
+  if (h >= 6 && h < 12) {
+    emoji = '☀️'; greeting = '早上好'; subtitle = '新的一天，从温柔的问候开始';
+  } else if (h >= 12 && h < 18) {
+    emoji = '🌇'; greeting = '下午好'; subtitle = '辛苦了，一天的努力即将收获';
+  } else if (h >= 18 && h < 22) {
+    emoji = '🌙'; greeting = '晚上好'; subtitle = '下班了，这里是你温暖的角落';
+  } else {
+    emoji = '🌌'; greeting = '夜深了'; subtitle = '该休息了，世界和你都值得被温柔对待';
+  }
+  document.getElementById('headerEmoji').textContent = emoji;
+  document.getElementById('greeting').textContent = greeting + '，' + subtitle;
+}
+
+// ═══════════════════════════════════════
+//  日夜模式
+// ═══════════════════════════════════════
+function checkNightMode() {
+  const h = new Date().getHours();
+  if (h >= 18 || h < 6) {
+    if (!isNight) toggleNight();
+  }
+}
+function toggleNight() {
+  isNight = !isNight;
+  document.body.classList.toggle('night', isNight);
+  const btn = document.getElementById('nightToggle');
+  btn.textContent = isNight ? '☀️' : '🌓';
+  btn.classList.toggle('active', isNight);
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  updateSoundButton();
+  if (soundEnabled) playAmbient();
+  else stopAmbient();
+}
+function updateSoundButton() {
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('soundToggle').classList.toggle('active', soundEnabled);
+}
+
+// ═══════════════════════════════════════
+//  粒子背景
+// ═══════════════════════════════════════
+function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#f0c8b8','#d8c0e0','#f8e8d0','#e0d0e8','#fcd8c8'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 3 + Math.random() * 8;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      bottom:-${10+Math.random()*20}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${8+Math.random()*16}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    container.appendChild(p);
+  }
+}
+
+// ═══════════════════════════════════════
+//  治愈语录
+// ═══════════════════════════════════════
+function nextQuote() {
+  let idx;
+  do { idx = Math.floor(Math.random() * quotes.length); }
+  while (idx === currentQuoteIdx && quotes.length > 1);
+  currentQuoteIdx = idx;
+  const q = quotes[idx];
+  const el = document.getElementById('quoteText');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = '“' + q.text + '”';
+    document.getElementById('quoteAuthor').textContent = q.author ? '—— ' + q.author : '';
+    el.style.opacity = '1';
+  }, 250);
+}
+
+// ═══════════════════════════════════════
+//  功能标签切换
+// ═══════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  // 找到对应按钮并激活
+  const buttons = document.querySelectorAll('.tab-nav button');
+  const map = { treehole:0, breath:1, journal:2, bubble:3 };
+  if (map[name] !== undefined) buttons[map[name]].classList.add('active');
+  if (name === 'bubble') initBubbles();
+}
+
+// ═══════════════════════════════════════
+//  树洞倾诉
+// ═══════════════════════════════════════
+function releaseWorry() {
+  const input = document.getElementById('treeholeInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // 创建飞走文字
+  const flyEl = document.createElement('div');
+  flyEl.className = 'flying-text';
+  flyEl.textContent = text.length > 30 ? text.slice(0,30) + '…' : text;
+  const textareaRect = input.getBoundingClientRect();
+  flyEl.style.left = textareaRect.left + textareaRect.width/2 - 40 + 'px';
+  flyEl.style.top = textareaRect.top + textareaRect.height/2 + 'px';
+  document.body.appendChild(flyEl);
+
+  // 播放音效
+  playPopSound();
+
+  // 动画结束后移除
+  setTimeout(() => flyEl.remove(), 3100);
+
+  // 统计
+  sessionReleaseCount++;
+  localStorage.setItem('healing_releaseCount', sessionReleaseCount);
+  updateReleaseCount();
+
+  // 清空输入
+  input.value = '';
+  input.placeholder = '烦恼已经飞走了~ 还有想说的吗？🕊️';
+  setTimeout(() => {
+    input.placeholder = '在这里写下你的烦恼、不开心、委屈...\n写出来，然后让它随风飘走吧 🎈';
+  }, 3000);
+}
+function updateReleaseCount() {
+  document.getElementById('releaseCount').textContent =
+    sessionReleaseCount > 0 ? `✨ 你已经放飞了 ${sessionReleaseCount} 个烦恼，真棒！` : '';
+}
+
+// ═══════════════════════════════════════
+//  呼吸练习 (4-7-8)
+// ═══════════════════════════════════════
+function startBreath() {
+  if (breathRunning) return;
+  breathRunning = true;
+  const totalRounds = parseInt(document.getElementById('breathRounds').value);
+  document.getElementById('breathStartBtn').style.display = 'none';
+  document.getElementById('breathStopBtn').style.display = 'inline-block';
+  document.getElementById('breathLabel').textContent = '准备…';
+
+  const circle = document.getElementById('breathCircle');
+  const label = document.getElementById('breathLabel');
+  const counter = document.getElementById('breathRoundCounter');
+  let currentRound = 0;
+
+  function runPhase(phase, duration, size, labelText) {
+    return new Promise(resolve => {
+      circle.style.transition = `transform ${duration}s linear`;
+      circle.style.transform = `scale(${size})`;
+      label.textContent = labelText;
+      breathTimer = setTimeout(resolve, duration * 1000);
+    });
+  }
+
+  async function runCycle() {
+    for (currentRound = 1; currentRound <= totalRounds; currentRound++) {
+      if (!breathRunning) break;
+      counter.textContent = `第 ${currentRound} / ${totalRounds} 轮`;
+      await runPhase('inhale', 4, 1.35, '吸气… 🌬️');
+      if (!breathRunning) break;
+      await runPhase('hold', 7, 1.35, '屏息 ✋');
+      if (!breathRunning) break;
+      await runPhase('exhale', 8, 0.7, '呼气… 😮‍💨');
+    }
+    if (breathRunning) {
+      counter.textContent = '✅ 完成！感觉好多了吧~';
+      label.textContent = '完成 ✨';
+      circle.style.transform = 'scale(1)';
+      resetBreathUI();
+    }
+  }
+
+  runCycle();
+}
+function stopBreath() {
+  breathRunning = false;
+  if (breathTimer) clearTimeout(breathTimer);
+  document.getElementById('breathCircle').style.transform = 'scale(1)';
+  document.getElementById('breathLabel').textContent = '已停止';
+  document.getElementById('breathRoundCounter').textContent = '';
+  resetBreathUI();
+}
+function resetBreathUI() {
+  breathRunning = false;
+  document.getElementById('breathStartBtn').style.display = 'inline-block';
+  document.getElementById('breathStopBtn').style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+//  今日小确幸（感恩日记）
+// ═══════════════════════════════════════
+function getJournals() {
+  try { return JSON.parse(localStorage.getItem('healing_journals') || '[]'); }
+  catch(e) { return []; }
+}
+function saveJournals(arr) {
+  localStorage.setItem('healing_journals', JSON.stringify(arr));
+}
+function addJournal() {
+  const input = document.getElementById('journalInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const journals = getJournals();
+  journals.unshift({
+    text: text,
+    time: new Date().toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  });
+  // 最多保留50条
+  if (journals.length > 50) journals.length = 50;
+  saveJournals(journals);
+  input.value = '';
+  renderJournalList();
+  playPopSound();
+}
+function deleteJournal(idx) {
+  const journals = getJournals();
+  journals.splice(idx, 1);
+  saveJournals(journals);
+  renderJournalList();
+}
+function renderJournalList() {
+  const journals = getJournals();
+  const container = document.getElementById('journalList');
+  if (journals.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:20px;">📝 还没有记录，写下今天的小确幸吧~</p>';
+    return;
+  }
+  container.innerHTML = journals.map((j, i) => `
+    <div class="journal-entry">
+      <div>
+        <div style="font-size:15px;margin-bottom:2px;">${escapeHtml(j.text)}</div>
+        <div class="time">${j.time}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteJournal(${i})" title="删除">🗑️</button>
+    </div>
+  `).join('');
+}
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ═══════════════════════════════════════
+//  捏泡泡解压
+// ═══════════════════════════════════════
+function initBubbles() {
+  const grid = document.getElementById('bubbleGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 30; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.addEventListener('click', function() { popBubble(b); });
+    grid.appendChild(b);
+  }
+}
+function popBubble(el) {
+  if (el.classList.contains('popped')) return;
+  el.classList.add('popped');
+  totalPopped++;
+  localStorage.setItem('healing_totalPopped', totalPopped);
+  updatePopCount();
+  playPopSound();
+}
+function resetBubbles() {
+  initBubbles();
+}
+function updatePopCount() {
+  document.getElementById('popCount').textContent = totalPopped;
+}
+function playPopSound() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600 + Math.random()*400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.12);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+//  背景氛围音（简单音调循环）
+// ═══════════════════════════════════════
+let ambientCtx = null;
+let ambientInterval = null;
+
+function playAmbient() {
+  if (!soundEnabled) return;
+  stopAmbient();
+  try {
+    ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+    ambientInterval = setInterval(() => {
+      if (!soundEnabled || !ambientCtx) { stopAmbient(); return; }
+      const osc = ambientCtx.createOscillator();
+      const gain = ambientCtx.createGain();
+      osc.connect(gain); gain.connect(ambientCtx.destination);
+      osc.type = 'sine';
+      // 五声音阶的柔和音符
+      const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+      const freq = notes[Math.floor(Math.random() * notes.length)];
+      osc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
+      gain.gain.setValueAtTime(0, ambientCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.025, ambientCtx.currentTime + 1.2);
+      gain.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 3.5);
+      osc.start(ambientCtx.currentTime);
+      osc.stop(ambientCtx.currentTime + 3.5);
+    }, 2800);
+  } catch(e) { /* 静默处理 */ }
+}
+function stopAmbient() {
+  if (ambientInterval) { clearInterval(ambientInterval); ambientInterval = null; }
+  if (ambientCtx) { ambientCtx.close().catch(()=>{}); ambientCtx = null; }
+}
+</script>
+
+</body>
+</html>

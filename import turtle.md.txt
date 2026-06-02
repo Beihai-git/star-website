@@ -1,0 +1,117 @@
+import turtle
+import random
+
+# 设置画布
+screen = turtle.Screen()
+screen.setup(width=800, height=600)
+screen.bgcolor("black")
+screen.title("烟花表演")
+screen.tracer(0)
+
+# 创建画笔
+pen = turtle.Turtle()
+pen.speed(0)
+pen.hideturtle()
+
+# 定义烟花爆炸函数
+def explode(x, y):
+    colors = ["red", "orange", "yellow", "green", "blue", "purple"]
+    for _ in range(30):
+        pen.penup()
+        pen.goto(x, y)
+        pen.pendown()
+        pen.color(random.choice(colors))
+        pen.setheading(random.randint(0, 360))
+        pen.forward(random.randint(20, 100))
+
+# 定义发射烟花函数
+def launch():
+    x = random.randint(-380, 380)
+    pen.penup()
+    pen.goto(x, -280)
+    pen.pendown()
+    pen.color("white")
+    pen.setheading(90)
+    pen.speed(2)
+    pen.forward(300)
+    pen.speed(0)
+    explode(pen.xcor(), pen.ycor())
+    pen.clear()
+
+# 循环发射烟花
+while True:
+    launch()
+    screen.update()
+
+
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize
+
+# 读取主路车流量数据
+def load_main_road_data(file_path):
+    data = pd.read_csv(file_path)
+    # 确保数据没有缺失值
+    if data.isnull().values.any():
+        raise ValueError("数据中包含缺失值")
+    return data.values.flatten()
+
+# 定义支路 1 的车流量函数(线性增长)
+def branch_1_flow(t, a, b):
+    return a * t + b
+
+# 定义支路 2 的车流量函数（先增后减）
+def branch_2_flow(t, c, d, e, f, breakpoint):
+    if t <= breakpoint:
+        return c * t + d
+    else:
+        return e * t + f
+
+# 定义误差函数，用于优化参数
+def error(params, main_flow, time_points):
+    a, b, c, d, e, f, breakpoint = params
+    predicted_flow = []
+    for t in time_points:
+        b1 = branch_1_flow(t, a, b)
+        b2 = branch_2_flow(t, c, d, e, f, breakpoint)
+        predicted_flow.append(b1 + b2)
+    return np.sum((np.array(predicted_flow) - main_flow) ** 2)
+
+# 主函数
+def main():
+    file_path = 'main_road_traffic.csv'
+    try:
+        main_flow = load_main_road_data(file_path)
+        num_records = len(main_flow)
+        time_points = np.arange(num_records)
+
+        # 初始参数猜测
+        initial_guess = [1, 1, 1, 1, -1, 1, num_records // 2]
+
+        # 设置参数边界（可选，根据实际情况调整）
+        bounds = [(0, None), (0, None), (0, None), (0, None), (None, 0), (0, None), (0, num_records - 1)]
+
+        # 进行参数优化
+        result = minimize(error, initial_guess, args=(main_flow, time_points), bounds=bounds)
+        optimal_params = result.x
+
+        # 计算支路 1 和支路 2 的车流量
+        branch_1 = [branch_1_flow(t, optimal_params[0], optimal_params[1]) for t in time_points]
+        branch_2 = [branch_2_flow(t, optimal_params[2], optimal_params[3], optimal_params[4], optimal_params[5], optimal_params[6]) for t in time_points]
+
+        print("支路 1 车流量：", branch_1)
+        print("支路 2 车流量：", branch_2)
+    except Exception as e:
+        print(f"发生错误：{e}")
+
+if __name__ == "__main__":
+    main()
+
+# 使用 numpy 创建一个数组
+matrix = np.array([[1, 2, 3], [4, 5, 6]])
+print(matrix)
+
+# 创建一个 DataFrame
+df = pd.DataFrame({'col1': [1, 2, 3], 'col2': ['a', 'b', 'c']})
+print(df)

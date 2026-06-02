@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风景图片画廊</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .gallery-item {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-item .info {
+            padding: 20px;
+        }
+
+        .gallery-item .info h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .gallery-item .info p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .gallery-item .location {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .gallery-item .location svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            overflow: auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            display: block;
+            margin: 5% auto;
+            max-width: 90%;
+            max-height: 85vh;
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-info {
+            color: white;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .modal-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .modal-info p {
+            opacity: 0.8;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #bbb;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .prev-btn {
+            left: 20px;
+        }
+
+        .next-btn {
+            right: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .gallery-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 20px;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                max-width: 95%;
+            }
+
+            .nav-btn {
+                font-size: 1.5rem;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌄 风景图片画廊</h1>
+        <p>探索世界各地的美丽风景，欣赏摄影师们的精彩作品</p>
+    </header>
+
+    <div class="gallery-container">
+        <div class="gallery-item" onclick="openModal(0)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20mountain%20landscape%20with%20lake%20reflection%20sunset%20golden%20hour&image_size=landscape_16_9" alt="山间日落">
+            <div class="info">
+                <h3>山间日落</h3>
+                <p>夕阳洒落在连绵的山脉上，湖面倒映着金色的余晖，宛如仙境般美丽。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    瑞士阿尔卑斯山
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(1)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tropical%20beach%20with%20palm%20trees%20turquoise%20water%20paradise&image_size=landscape_16_9" alt="热带海滩">
+            <div class="info">
+                <h3>热带海滩</h3>
+                <p>碧蓝的海水轻轻拍打着细白的沙滩，椰林摇曳，是梦想中的度假胜地。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    马尔代夫
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(2)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=misty%20forest%20with%20sunlight%20rays%20through%20trees%20nature&image_size=landscape_16_9" alt="迷雾森林">
+            <div class="info">
+                <h3>迷雾森林</h3>
+                <p>阳光穿透晨雾，照亮了幽静的森林，空气中弥漫着清新的气息。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    加拿大温哥华岛
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(3)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=grand%20canyon%20red%20rock%20formations%20sunrise%20panoramic&image_size=landscape_16_9" alt="大峡谷">
+            <div class="info">
+                <h3>大峡谷日出</h3>
+                <p>层峦叠嶂的红色岩石在晨光中变幻着色彩，展现大自然的鬼斧神工。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    美国大峡谷国家公园
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(4)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=northern%20lights%20aurora%20borealis%20over%20snowy%20mountains&image_size=landscape_16_9" alt="北极光">
+            <div class="info">
+                <h3>北极光之夜</h3>
+                <p>神秘的绿色光芒在夜空中舞动，与皑皑白雪交相辉映，如梦如幻。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    挪威特罗姆瑟
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(5)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=waterfall%20in%20green%20forest%20mist%20rainbow%20nature&image_size=landscape_16_9" alt="森林瀑布">
+            <div class="info">
+                <h3>森林瀑布</h3>
+                <p>清澈的水流从高处倾泻而下，在阳光照耀下形成一道美丽的彩虹。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    巴西伊瓜苏瀑布
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(6)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=desert%20sand%20dunes%20orange%20sunset%20silhouette%20camel&image_size=landscape_16_9" alt="沙漠日落">
+            <div class="info">
+                <h3>沙漠日落</h3>
+                <p>金色的沙丘在夕阳下绵延起伏，驼队的剪影勾勒出一幅壮丽的画面。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    摩洛哥撒哈拉沙漠
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item" onclick="openModal(7)">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cherry%20blossom%20spring%20japan%20temple%20pink%20flowers&image_size=landscape_16_9" alt="樱花盛开">
+            <div class="info">
+                <h3>樱花盛开</h3>
+                <p>粉色的樱花如云似霞，古老的寺庙掩映其间，充满诗意与浪漫。</p>
+                <div class="location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    日本京都
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal" onclick="closeModal()">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <button class="nav-btn prev-btn" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</button>
+        <img class="modal-content" id="modalImage">
+        <button class="nav-btn next-btn" onclick="event.stopPropagation(); changeImage(1)">&#10095;</button>
+        <div class="modal-info">
+            <h3 id="modalTitle"></h3>
+            <p id="modalDesc"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2024 风景图片画廊 | 感谢摄影师们的精彩作品</p>
+    </footer>
+
+    <script>
+        const images = [
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20mountain%20landscape%20with%20lake%20reflection%20sunset%20golden%20hour&image_size=landscape_16_9",
+                title: "山间日落",
+                desc: "瑞士阿尔卑斯山 - 夕阳洒落在连绵的山脉上，湖面倒映着金色的余晖"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tropical%20beach%20with%20palm%20trees%20turquoise%20water%20paradise&image_size=landscape_16_9",
+                title: "热带海滩",
+                desc: "马尔代夫 - 碧蓝的海水轻轻拍打着细白的沙滩，椰林摇曳"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=misty%20forest%20with%20sunlight%20rays%20through%20trees%20nature&image_size=landscape_16_9",
+                title: "迷雾森林",
+                desc: "加拿大温哥华岛 - 阳光穿透晨雾，照亮了幽静的森林"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=grand%20canyon%20red%20rock%20formations%20sunrise%20panoramic&image_size=landscape_16_9",
+                title: "大峡谷日出",
+                desc: "美国大峡谷国家公园 - 层峦叠嶂的红色岩石在晨光中变幻着色彩"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=northern%20lights%20aurora%20borealis%20over%20snowy%20mountains&image_size=landscape_16_9",
+                title: "北极光之夜",
+                desc: "挪威特罗姆瑟 - 神秘的绿色光芒在夜空中舞动"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=waterfall%20in%20green%20forest%20mist%20rainbow%20nature&image_size=landscape_16_9",
+                title: "森林瀑布",
+                desc: "巴西伊瓜苏瀑布 - 清澈的水流从高处倾泻而下"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=desert%20sand%20dunes%20orange%20sunset%20silhouette%20camel&image_size=landscape_16_9",
+                title: "沙漠日落",
+                desc: "摩洛哥撒哈拉沙漠 - 金色的沙丘在夕阳下绵延起伏"
+            },
+            {
+                url: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cherry%20blossom%20spring%20japan%20temple%20pink%20flowers&image_size=landscape_16_9",
+                title: "樱花盛开",
+                desc: "日本京都 - 粉色的樱花如云似霞，古老的寺庙掩映其间"
+            }
+        ];
+
+        let currentIndex = 0;
+        const modal = document.getElementById('myModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+
+        function openModal(index) {
+            currentIndex = index;
+            updateModal();
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function changeImage(direction) {
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = images.length - 1;
+            if (currentIndex >= images.length) currentIndex = 0;
+            updateModal();
+        }
+
+        function updateModal() {
+            const image = images[currentIndex];
+            modalImage.src = image.url;
+            modalTitle.textContent = image.title;
+            modalDesc.textContent = image.desc;
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (modal.style.display === 'block') {
+                if (e.key === 'ArrowLeft') changeImage(-1);
+                if (e.key === 'ArrowRight') changeImage(1);
+                if (e.key === 'Escape') closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
