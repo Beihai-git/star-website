@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📖 复古日记 — 记录时光的痕迹</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 顶部装饰边框 -->
+  <div class="ornament-top"></div>
+
+  <div class="app-wrapper">
+    <!-- ========== 头部 ========== -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title">📖 复古日记</h1>
+        <p class="app-subtitle">记录时光的痕迹 · 珍藏每一刻</p>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-outline" id="btnExport" title="导出全部日记">
+          📤 导出备份
+        </button>
+        <label class="btn btn-outline" for="fileImport" title="从备份文件导入">
+          📥 导入备份
+        </label>
+        <input type="file" id="fileImport" accept=".json" style="display:none">
+      </div>
+    </header>
+
+    <!-- ========== 主体 ========== -->
+    <div class="app-body">
+      <!-- 侧边栏 -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <button class="btn btn-primary btn-new-entry" id="btnNewEntry">
+            <span class="icon-pen">✒️</span> 新建日记
+          </button>
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="搜索日记…" autocomplete="off">
+            <button class="search-clear" id="btnClearSearch" style="display:none">✕</button>
+          </div>
+        </div>
+
+        <div class="entry-list" id="entryList">
+          <!-- 动态渲染 -->
+        </div>
+
+        <div class="sidebar-footer">
+          <p class="entry-count" id="entryCount">共 0 篇日记</p>
+        </div>
+      </aside>
+
+      <!-- 编辑器主体 -->
+      <main class="editor-container" id="editorContainer">
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-illustration">
+            <span class="empty-icon">📔</span>
+          </div>
+          <h2>欢迎使用复古日记</h2>
+          <p>点击左侧「✒️ 新建日记」开始记录今天的故事</p>
+          <p class="empty-hint">支持插入图片、链接和文件附件</p>
+          <button class="btn btn-primary" id="btnEmptyNew">✒️ 写一篇日记</button>
+        </div>
+
+        <!-- 编辑器（默认隐藏） -->
+        <div class="editor-panel" id="editorPanel" style="display:none">
+          <!-- 编辑器头部 -->
+          <div class="editor-header">
+            <div class="editor-date-row">
+              <input type="date" id="entryDate" class="entry-date">
+              <select id="entryMood" class="entry-mood">
+                <option value="">📝 选择心情</option>
+                <option value="happy">😊 开心</option>
+                <option value="sad">😢 难过</option>
+                <option value="angry">😤 生气</option>
+                <option value="thoughtful">🤔 思考</option>
+                <option value="calm">😌 平静</option>
+                <option value="grateful">🥰 感恩</option>
+                <option value="excited">🎉 兴奋</option>
+                <option value="tired">😴 疲惫</option>
+              </select>
+            </div>
+            <input type="text" id="entryTitle" class="entry-title-input" placeholder="为这篇日记取个标题…" maxlength="100">
+          </div>
+
+          <!-- 格式工具栏 -->
+          <div class="toolbar" id="toolbar">
+            <div class="toolbar-group">
+              <button class="tool-btn" data-command="bold" title="加粗 (Ctrl+B)"><b>B</b></button>
+              <button class="tool-btn" data-command="italic" title="斜体 (Ctrl+I)"><i>I</i></button>
+              <button class="tool-btn" data-command="underline" title="下划线 (Ctrl+U)"><u>U</u></button>
+              <button class="tool-btn" data-command="strikeThrough" title="删除线"><s>S</s></button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button class="tool-btn" data-command="formatBlock" data-value="h2" title="标题">H</button>
+              <button class="tool-btn" data-command="formatBlock" data-value="h3" title="副标题">h</button>
+              <button class="tool-btn" data-command="formatBlock" data-value="p" title="正文">¶</button>
+              <button class="tool-btn" data-command="formatBlock" data-value="blockquote" title="引用">❝</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button class="tool-btn" data-command="insertUnorderedList" title="无序列表">•</button>
+              <button class="tool-btn" data-command="insertOrderedList" title="有序列表">1.</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button class="tool-btn" id="btnInsertImage" title="插入图片">🖼️</button>
+              <button class="tool-btn" id="btnInsertLink" title="插入链接">🔗</button>
+              <button class="tool-btn" id="btnInsertDivider" title="插入分割线">—</button>
+            </div>
+            <div class="toolbar-right">
+              <span class="word-count" id="wordCount">0 字</span>
+            </div>
+          </div>
+
+          <!-- 编辑区域 -->
+          <div class="editor-content-wrapper">
+            <div
+              class="editor-content"
+              id="editorContent"
+              contenteditable="true"
+              placeholder="在这里写下你的故事…"
+            ></div>
+          </div>
+
+          <!-- 附件区域 -->
+          <div class="attachments-area" id="attachmentsArea">
+            <div class="attachments-header">
+              <h4>📎 附件文件</h4>
+              <label class="btn btn-sm btn-outline" for="fileAttachment">
+                ＋ 添加附件
+              </label>
+              <input type="file" id="fileAttachment" multiple style="display:none">
+            </div>
+            <div class="attachments-list" id="attachmentsList">
+              <p class="no-attachments">暂无附件</p>
+            </div>
+          </div>
+
+          <!-- 编辑器底部 -->
+          <div class="editor-footer">
+            <div class="footer-left">
+              <span class="save-indicator" id="saveIndicator">💾 已保存</span>
+              <span class="last-saved" id="lastSaved"></span>
+            </div>
+            <div class="footer-right">
+              <button class="btn btn-danger" id="btnDeleteEntry">🗑️ 删除</button>
+              <button class="btn btn-primary" id="btnSaveEntry">💾 保存日记</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 底部装饰边框 -->
+  <div class="ornament-bottom"></div>
+
+  <!-- ========== 模态框：插入链接 ========== -->
+  <div class="modal-overlay" id="modalLinkOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🔗 插入链接</h3>
+        <button class="modal-close" data-close="modalLinkOverlay">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="linkUrl">链接地址 (URL)</label>
+          <input type="url" id="linkUrl" placeholder="https://…" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="linkText">显示文本（可选）</label>
+          <input type="text" id="linkText" placeholder="留空则显示链接地址" class="form-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modalLinkOverlay">取消</button>
+        <button class="btn btn-primary" id="btnConfirmLink">插入链接</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：删除确认 ========== -->
+  <div class="modal-overlay" id="modalDeleteOverlay">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>⚠️ 确认删除</h3>
+        <button class="modal-close" data-close="modalDeleteOverlay">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除这篇日记吗？此操作<strong>不可撤销</strong>。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close="modalDeleteOverlay">取消</button>
+        <button class="btn btn-danger" id="btnConfirmDelete">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Toast 提示 ========== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 隐藏的文件输入：用于工具栏插入图片 -->
+  <input type="file" id="hiddenImageInput" accept="image/*" multiple style="display:none">
+
+  <script src="js/app.js"></script>
+</body>
+</html>
